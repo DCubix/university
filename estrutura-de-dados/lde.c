@@ -4,6 +4,15 @@
 
 #include <time.h>
 
+/**
+Funções para medição do tempo de execução de um bloco de código
+Uso:
+CRON_BEGIN()
+
+... operações ...
+
+CRON_END()
+*/
 #define CRON_BEGIN() { clock_t __b, __e; double __t; __b = clock()
 #define CRON_END()  __e = clock(); __t = (double)(__e - __b) / CLOCKS_PER_SEC; \
 printf("Tempo Decorrido: %.6f segundos\n", __t); }
