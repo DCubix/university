@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <time.h>
+
+#define CRON_BEGIN() { clock_t __b, __e; double __t; __b = clock()
+#define CRON_END()  __e = clock(); __t = (double)(__e - __b) / CLOCKS_PER_SEC; \
+printf("Tempo Decorrido: %.6f segundos\n", __t); }
+
 typedef struct no_t {
 	int val;
 	struct no_t *antr;
@@ -57,14 +63,31 @@ void insere_listade_fim(LISTADE* lst, int val) {
 	lst->tamanho++;
 }
 
+NO* busca_no_listade(LISTADE* lst, int val) {
+	NO* inicio = lst->inicio;
+	NO* fim = lst->fim;
+
+	int i = 0;
+	while (inicio != NULL || fim != NULL) {
+		if (inicio->val == val) return inicio;
+		if (fim->val == val) return fim;
+
+		inicio = inicio->prox;
+		fim = fim->antr;
+		if ((i+=2) >= lst->tamanho) break;
+	}
+	return NULL;
+}
+
 void remove_listade(LISTADE* lst, int val) {
 	if (listade_vazia(lst)) return;
-	NO *tmp = lst->inicio;
-	while (tmp != NULL && tmp->val != val) {
-		tmp = tmp->prox;
-	}
+	NO *tmp = NULL;
 
-	// Atingiu o fim da lista sem encontrar nenhum valor
+	// Busca o elemento requisitado (mesmo método de busca)
+	tmp = busca_no_listade(lst, val);
+	//
+
+	// Não encontrou nenhum valor
 	if (tmp == NULL) return;
 	if (tmp->val != val) return;
 
@@ -92,40 +115,47 @@ void remove_listade(LISTADE* lst, int val) {
 
 bool busca_listade(LISTADE* lst, int val) {
 	if (listade_vazia(lst)) return false;
-	NO* inicio = lst->inicio;
-	NO* fim = lst->fim;
-
-	int i = 0;
-	while (inicio != NULL || fim != NULL) {
-		if (inicio && inicio->val == val) return true;
-		if (fim && fim->val == val) return true;
-
-		inicio = inicio->prox;
-		fim = fim->antr;
-		if ((i+=2) >= lst->tamanho) break;
-	}
-	return false;
+	return busca_no_listade(lst, val) != NULL;
 }
 
-void imprime_listade(LISTADE* lst) {
+void imprime_listade(LISTADE* lst, bool completa) {
 	printf("[");
 	NO* tmp = lst->inicio;
+	int n = 0;
 	while (tmp != NULL) {
 		if (tmp->prox == NULL) printf("%d", tmp->val);
 		else				   printf("%d, ", tmp->val);
 		tmp = tmp->prox;
+		if (!completa && n >= 50) {
+			printf(" ...");
+			break;	
+		}
+		n++;
 	}
 	printf("]\n");
 }
 
 int main(int argc, char** argv) {
 	LISTADE *lst = cria_listade();
-	printf("=== Inserção:\n");
-	for (int i = 0; i < 100; i++) {
-		insere_listade_fim(lst, rand() % 100);
+
+	int nitems = 0;
+
+	while (nitems <= 0) {
+		scanf("%d", &nitems);
 	}
 
-	imprime_listade(lst);
+	int n = nitems/2;
+
+	printf("=== Inserção (FIM & INÍCIO):\n");
+	for (int i = 0; i < n; i++) {
+		insere_listade_inicio(lst, rand() % nitems);
+	}
+
+	for (int i = 0; i < n; i++) {
+		insere_listade_fim(lst, rand() % nitems);
+	}
+
+	imprime_listade(lst, nitems <= 50);
 
 	printf("=== Busca:\n\t");
 
@@ -133,7 +163,12 @@ int main(int argc, char** argv) {
 	int b = 0;
 	scanf("%d", &b);
 
-	if (busca_listade(lst, b)) {
+	bool bres = false;
+	CRON_BEGIN();
+		bres = busca_listade(lst, b);
+	CRON_END();
+	
+	if (bres) {
 		printf("Valor %d encontrado!\n", b);
 	} else {
 		printf("Valor %d não encontrado!\n", b);
@@ -141,11 +176,16 @@ int main(int argc, char** argv) {
 
 	printf("=== Remoção:\n");
 
-	for (int i = 0; i < 20; i++) {
-		remove_listade(lst, rand() % 100);
+	CRON_BEGIN();
+	for (int i = 0; i < n; i++) {
+		int rem = rand() % nitems;
+		remove_listade(lst, rem);
+		if (i < 200) printf("\tRemovido: %d\n", rem);
 	}
+	if (n > 200) printf("\t...\n");
+	CRON_END();
 
-	imprime_listade(lst);
+	imprime_listade(lst, nitems <= 50);
 
 	return 0;
 }
