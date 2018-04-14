@@ -50,40 +50,57 @@ bool listade_vazia(LISTADE* lst) {
 
 void insere_listade_inicio(LISTADE* lst, int val) {
 	NO* no = cria_no(val);
-	if (listade_vazia(lst)) {
-		lst->fim = no;
-	} else {
-		lst->inicio->antr = no;
-	}
 	no->prox = lst->inicio;
+
+	if (lst->inicio != NULL) lst->inicio->antr = no;
+
 	lst->inicio = no;
+	if (lst->fim == NULL) {
+		lst->fim = lst->inicio;
+	}
 	lst->tamanho++;
 }
 
 void insere_listade_fim(LISTADE* lst, int val) {
-	NO* no = cria_no(val);
 	if (listade_vazia(lst)) {
-		lst->inicio = lst->fim = no;
-	} else {
-		lst->fim->prox = no;
-		no->antr = lst->fim;
+		insere_listade_inicio(lst, val);
+		return;
 	}
+
+	NO* no = cria_no(val);
+	no->antr = lst->fim;
+	lst->fim->prox = no;
 	lst->fim = no;
+
 	lst->tamanho++;
+}
+
+void insere_ordenado_listade(LISTADE* lst, int val) {
+	if (listade_vazia(lst)) {
+		insere_listade_fim(lst, val);
+	} else if (val < lst->inicio->val) {
+	    NO* no = cria_no(val);
+	    no->prox = lst->inicio;
+	    lst->inicio->antr = no;
+	    lst->inicio = no;
+	    lst->tamanho++;
+	} else {
+		
+	}
 }
 
 NO* busca_no_listade(LISTADE* lst, int val) {
 	NO* inicio = lst->inicio;
 	NO* fim = lst->fim;
 
-	int i = 0;
-	while (inicio != NULL || fim != NULL) {
-		if (inicio->val == val) return inicio;
-		if (fim->val == val) return fim;
+	while (inicio != NULL && fim != NULL) {
+		if (inicio && inicio->val == val)
+		    return inicio;
+		if (fim && fim->val == val)
+		    return fim;
 
-		inicio = inicio->prox;
+    	inicio = inicio->prox;
 		fim = fim->antr;
-		if ((i+=2) >= lst->tamanho) break;
 	}
 	return NULL;
 }
@@ -147,21 +164,31 @@ void imprime_listade(LISTADE* lst, bool completa) {
 int main(int argc, char** argv) {
 	LISTADE *lst = cria_listade();
 
-	int nitems = 0;
+	int nitems = -1;
 
-	while (nitems <= 0) {
+	while (nitems < 0) {
 		scanf("%d", &nitems);
 	}
 
-	int n = nitems/2;
+	int n = 0;
+	if (nitems > 1) {
+		n = nitems/2;
 
-	printf("=== Inserção (FIM & INÍCIO):\n");
-	for (int i = 0; i < n; i++) {
-		insere_listade_inicio(lst, rand() % nitems);
+		printf("=== Inserção (FIM & INÍCIO):\n");
+		for (int i = 0; i < n; i++) {
+			insere_listade_inicio(lst, rand() % nitems);
+		}
+
+		for (int i = 0; i < n; i++) {
+			insere_listade_fim(lst, rand() % nitems);
+		}
 	}
 
-	for (int i = 0; i < n; i++) {
-		insere_listade_fim(lst, rand() % nitems);
+    imprime_listade(lst, nitems <= 50);
+
+	printf("=== Inserção Ordenada:\n");
+	for (int i = 0; i < 25; i++) {
+		insere_ordenado_listade(lst, rand() % 20);
 	}
 
 	imprime_listade(lst, nitems <= 50);
@@ -186,12 +213,12 @@ int main(int argc, char** argv) {
 	printf("=== Remoção:\n");
 
 	CRON_BEGIN();
-	for (int i = 0; i < n; i++) {
-		int rem = rand() % nitems;
-		remove_listade(lst, rem);
-		if (i < 200) printf("\tRemovido: %d\n", rem);
-	}
-	if (n > 200) printf("\t...\n");
+		for (int i = 0; i < n; i++) {
+			int rem = rand() % nitems;
+			remove_listade(lst, rem);
+			if (i < 200) printf("\tRemovido: %d\n", rem);
+		}
+		if (n > 200) printf("\t...\n");
 	CRON_END();
 
 	imprime_listade(lst, nitems <= 50);
